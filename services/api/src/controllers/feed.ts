@@ -106,19 +106,25 @@ export const getProfileSummary = async (req: Request, res: Response) => {
     return badRequest(res, "Invalid authority address.");
   }
 
-  const profile = await ProfileModel.findOne({ authority }).lean();
-  if (!profile) {
-    return res.status(404).json({ ok: false, error: "Profile not found." });
-  }
-
   const [followers, following, posts] = await Promise.all([
     FollowModel.countDocuments({ following: authority }),
     FollowModel.countDocuments({ follower: authority }),
     PostModel.countDocuments({ author: authority }),
   ]);
 
+  const profile = await ProfileModel.findOne({ authority }).lean();
+  const fallbackProfile = {
+    authority,
+    username: authority.slice(0, 6),
+    displayName: authority.slice(0, 6),
+    bioCid: "",
+    avatarCid: "",
+    createdAt: null,
+    updatedAt: null,
+  };
+
   return ok(res, {
-    profile,
+    profile: profile || fallbackProfile,
     stats: {
       followers,
       following,
