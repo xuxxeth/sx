@@ -112,7 +112,11 @@ pub fn create_profile(
         Ok(())
     }
 
-    pub fn unfollow(_ctx: Context<Unfollow>) -> Result<()> {
+    pub fn unfollow(ctx: Context<Unfollow>) -> Result<()> {
+        emit!(Unfollowed {
+            follower: ctx.accounts.follower.key(),
+            following: ctx.accounts.following.key(),
+        });
         Ok(())
     }
 
@@ -564,6 +568,12 @@ pub struct ProfileUpdated {
 
 #[event]
 pub struct Followed {
+    pub follower: Pubkey,
+    pub following: Pubkey,
+}
+
+#[event]
+pub struct Unfollowed {
     pub follower: Pubkey,
     pub following: Pubkey,
 }

@@ -238,6 +238,14 @@ describe("solana", () => {
       })
       .signers([follower])
       .rpc();
+
+    let closed = false;
+    try {
+      await program.account.followEdge.fetch(followPda);
+    } catch {
+      closed = true;
+    }
+    assert.equal(closed, true);
   });
 
   it("creates post index", async () => {

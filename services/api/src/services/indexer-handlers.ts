@@ -14,9 +14,11 @@ export const applyIndexedEvents = async (
   eventIdPrefix: string
 ) => {
   if (events.length === 0) return;
+  const debug = process.env.INDEXER_DEBUG === "true";
 
   const profileOps: any[] = [];
-  const followOps: any[] = [];
+  const followUpserts: any[] = [];
+  const followDeletes: any[] = [];
   const postOps: any[] = [];
   const tipOps: any[] = [];
   const likeOps: any[] = [];
@@ -25,6 +27,10 @@ export const applyIndexedEvents = async (
 
   events.forEach((event, index) => {
     const eventId = `${eventIdPrefix}:${index}`;
+    if (debug) {
+      // eslint-disable-next-line no-console
+      console.log("Indexer: apply event", eventId, event.type, event.data);
+    }
     switch (event.type) {
       case "profile":
         profileOps.push({
@@ -36,11 +42,24 @@ export const applyIndexedEvents = async (
         });
         break;
       case "follow":
-        followOps.push({
+        followUpserts.push({
           updateOne: {
-            filter: { eventId },
-            update: { ...event.data, eventId },
+            filter: {
+              follower: event.data.follower,
+              following: event.data.following,
+            },
+            update: { $set: { ...event.data, eventId } },
             upsert: true,
+          },
+        });
+        break;
+      case "unfollow":
+        followDeletes.push({
+          deleteOne: {
+            filter: {
+              follower: event.data.follower,
+              following: event.data.following,
+            },
           },
         });
         break;
@@ -115,7 +134,12 @@ export const applyIndexedEvents = async (
   });
 
   if (profileOps.length) await ProfileModel.bulkWrite(profileOps, { ordered: false });
-  if (followOps.length) await FollowModel.bulkWrite(followOps, { ordered: false });
+  if (followUpserts.length) {
+    await FollowModel.bulkWrite(followUpserts, { ordered: true });
+  }
+  if (followDeletes.length) {
+    await FollowModel.bulkWrite(followDeletes, { ordered: true });
+  }
   if (postOps.length) await PostModel.bulkWrite(postOps, { ordered: false });
   if (tipOps.length) await TipModel.bulkWrite(tipOps, { ordered: false });
   if (likeOps.length) await LikeModel.bulkWrite(likeOps, { ordered: false });

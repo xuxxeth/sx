@@ -15,9 +15,30 @@ export const listTopics = async (req: Request, res: Response) => {
     { $limit: limit },
   ]);
 
+  if (topics.length === 0) {
+    const posts = await PostModel.find({})
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean();
+    return okPaged(
+      res,
+      posts.map((post) => ({
+        type: "post",
+        author: post.author,
+        postId: post.postId,
+        contentCid: post.contentCid,
+      })),
+      { limit, offset, total: posts.length }
+    );
+  }
+
   return okPaged(
     res,
-    topics.map((topic) => ({ topic: topic._id, count: topic.count })),
+    topics.map((topic) => ({
+      type: "topic",
+      topic: topic._id,
+      count: topic.count,
+    })),
     { limit, offset, total: topics.length }
   );
 };

@@ -975,6 +975,19 @@
         45,
         9
       ]
+    },
+    {
+      "name": "Unfollowed",
+      "discriminator": [
+        181,
+        126,
+        70,
+        2,
+        95,
+        63,
+        168,
+        239
+      ]
     }
   ],
   "errors": [
@@ -1360,6 +1373,22 @@
           {
             "name": "post_id",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Unfollowed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "follower",
+            "type": "pubkey"
+          },
+          {
+            "name": "following",
+            "type": "pubkey"
           }
         ]
       }

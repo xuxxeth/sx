@@ -50,6 +50,27 @@ export const runIndexerOnce = async (options: {
       );
     }
 
+    if (process.env.INDEXER_DEBUG === "true" && events.length) {
+      // eslint-disable-next-line no-console
+      console.log(
+        "Indexer: parsed signature",
+        sigInfo.signature,
+        events.map((event) => event.type)
+      );
+    }
+
+    if (events.length === 0) {
+      // eslint-disable-next-line no-console
+      console.log(
+        "Indexer: no events parsed",
+        JSON.stringify({
+          signature: sigInfo.signature,
+          slot: sigInfo.slot,
+          logs: tx.meta.logMessages?.slice(0, 12) || [],
+        })
+      );
+    }
+
     if (events.length) {
       await applyIndexedEvents(events, sigInfo.signature);
       processed += events.length;
@@ -62,4 +83,49 @@ export const runIndexerOnce = async (options: {
   }
 
   return { processed, signatures: signatures.length };
+};
+
+export const runIndexerForSignature = async (
+  signature: string,
+  commitment?: "processed" | "confirmed" | "finalized"
+) => {
+  const programId = getProgramId();
+  if (!programId) {
+    throw new Error("SOLANA_PROGRAM_ID not set");
+  }
+  const connection = getSolanaConnection();
+  const finalCommitment = commitment ?? "confirmed";
+
+  const tx = await connection.getTransaction(signature, {
+    commitment: finalCommitment,
+    maxSupportedTransactionVersion: 0,
+  });
+
+  if (!tx?.meta?.logMessages) {
+    return { processed: 0, signatures: 0 };
+  }
+
+  let events = parseEventsFromLogs(
+    connection,
+    new PublicKey(programId),
+    tx.meta.logMessages
+  );
+  if (events.length === 0) {
+    events = parseInstructionsFromTransaction(new PublicKey(programId), tx);
+  }
+
+  if (process.env.INDEXER_DEBUG === "true") {
+    // eslint-disable-next-line no-console
+    console.log(
+      "Indexer: parsed signature",
+      signature,
+      events.map((event) => event.type)
+    );
+  }
+
+  if (events.length) {
+    await applyIndexedEvents(events, signature);
+  }
+
+  return { processed: events.length, signatures: 1 };
 };

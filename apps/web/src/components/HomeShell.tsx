@@ -34,7 +34,7 @@ export const HomeShell = () => {
           </section>
         </main>
 
-        <aside className="hidden w-80 flex-col gap-6 xl:flex">
+        <aside className="hidden w-80 flex-col gap-6 lg:flex">
           <SearchCard />
           <TrendsPanel />
           <ConfigWarnings />

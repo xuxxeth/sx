@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useSearchParams } from "next/navigation";
 import { HomeNav } from "./HomeNav";
 import { SearchCard } from "./SearchCard";
 import { TrendsPanel } from "./TrendsPanel";
@@ -58,7 +59,10 @@ export const ProfileShell = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [bio, setBio] = useState<string>("");
 
-  const authority = wallet.publicKey?.toBase58() || defaultAuthority;
+  const searchParams = useSearchParams();
+  const queryAuthority = searchParams.get("authority") || "";
+  const authority =
+    queryAuthority || wallet.publicKey?.toBase58() || defaultAuthority;
 
   const joinedLabel = useMemo(() => {
     if (!summary?.profile?.createdAt) return "Joined";
@@ -258,7 +262,7 @@ export const ProfileShell = () => {
           </section>
         </main>
 
-        <aside className="hidden w-80 flex-col gap-6 xl:flex">
+        <aside className="hidden w-80 flex-col gap-6 lg:flex">
           <SearchCard />
           <TrendsPanel />
           <ConfigWarnings />

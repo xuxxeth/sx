@@ -97,7 +97,9 @@ export const ProfileForm = () => {
     await fetch("/api/index/replay", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ limit: replayLimit }),
+      body: JSON.stringify(
+        txSignature ? { signature: txSignature } : { limit: replayLimit }
+      ),
     }).catch(() => null);
     setStatus(`${message} Indexer sync triggered.`);
     router.refresh();

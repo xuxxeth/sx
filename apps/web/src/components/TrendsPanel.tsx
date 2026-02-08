@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { resolveIpfsPost } from "../lib/ipfs";
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
 
-type Trend = { topic: string; count: number };
+type Trend =
+  | { type: "topic"; topic: string; count: number }
+  | { type: "post"; author: string; postId: number; contentCid: string };
 
 export const TrendsPanel = () => {
   const [trends, setTrends] = useState<Trend[]>([]);
+  const [snippets, setSnippets] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -26,6 +30,35 @@ export const TrendsPanel = () => {
     load();
   }, []);
 
+  useEffect(() => {
+    const loadSnippets = async () => {
+      const entries = await Promise.all(
+        trends
+          .filter((item): item is Extract<Trend, { type: "post" }> => item.type === "post")
+          .map(async (item) => {
+            try {
+              const post = await resolveIpfsPost(item.contentCid);
+              const text = post.content || "Untitled post";
+              return [
+                `${item.author}:${item.postId}`,
+                text.length > 80 ? `${text.slice(0, 80)}…` : text,
+              ] as const;
+            } catch {
+              return [
+                `${item.author}:${item.postId}`,
+                "Content unavailable",
+              ] as const;
+            }
+          })
+      );
+      setSnippets(Object.fromEntries(entries));
+    };
+
+    if (trends.some((item) => item.type === "post")) {
+      loadSnippets();
+    }
+  }, [trends]);
+
   return (
     <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
@@ -36,15 +69,28 @@ export const TrendsPanel = () => {
         {trends.length === 0 ? (
           <p className="text-xs text-zinc-400">No topics yet.</p>
         ) : null}
-        {trends.map((trend) => (
-          <div key={trend.topic}>
-            <p className="text-xs text-zinc-400">Trending</p>
-            <p className="text-sm font-semibold text-zinc-900">
-              #{trend.topic}
-            </p>
-            <p className="text-xs text-zinc-400">{trend.count} posts</p>
-          </div>
-        ))}
+        {trends.map((trend) => {
+          if (trend.type === "post") {
+            const key = `${trend.author}:${trend.postId}`;
+            return (
+              <div key={key}>
+                <p className="text-xs text-zinc-400">Latest post</p>
+                <p className="text-sm font-semibold text-zinc-900">
+                  {snippets[key] || "Loading..."}
+                </p>
+              </div>
+            );
+          }
+          return (
+            <div key={trend.topic}>
+              <p className="text-xs text-zinc-400">Trending</p>
+              <p className="text-sm font-semibold text-zinc-900">
+                #{trend.topic}
+              </p>
+              <p className="text-xs text-zinc-400">{trend.count} posts</p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

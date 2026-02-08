@@ -91,6 +91,24 @@ export const PostActions = ({
   }, [wallet.publicKey, author]);
 
   useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ author?: string; following?: boolean }>)
+        .detail;
+      if (!detail) return;
+      if (detail.author && detail.author !== author) return;
+      if (typeof detail.following === "boolean") {
+        setFollowing(detail.following);
+      } else {
+        refreshStatus();
+      }
+    };
+    window.addEventListener("sx:follow-change", handler as EventListener);
+    return () => {
+      window.removeEventListener("sx:follow-change", handler as EventListener);
+    };
+  }, [author, wallet.publicKey]);
+
+  useEffect(() => {
     setLocalLikeCount(likeCount);
   }, [likeCount]);
 
@@ -98,11 +116,13 @@ export const PostActions = ({
     setLocalCommentCount(commentCount);
   }, [commentCount]);
 
-  const triggerSync = async () => {
+  const triggerSync = async (txSignature?: string) => {
     await fetch("/api/index/replay", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ limit: replayLimit }),
+      body: JSON.stringify(
+        txSignature ? { signature: txSignature } : { limit: replayLimit }
+      ),
     }).catch(() => null);
   };
 
@@ -122,8 +142,9 @@ export const PostActions = ({
       const program = await getProgram(wallet as any, endpoint);
       const [followPda] = deriveFollowPda(wallet.publicKey, new web3.PublicKey(author));
 
+      let tx: string;
       if (following) {
-        await program.methods
+        tx = await program.methods
           .unfollow()
           .accounts({
             follower: wallet.publicKey,
@@ -132,7 +153,7 @@ export const PostActions = ({
           })
           .rpc();
       } else {
-        await program.methods
+        tx = await program.methods
           .follow()
           .accounts({
             follower: wallet.publicKey,
@@ -143,8 +164,16 @@ export const PostActions = ({
           .rpc();
       }
 
-      await triggerSync();
-      setFollowing(!following);
+      const nextFollowing = !following;
+      await triggerSync(tx);
+      setFollowing(nextFollowing);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("sx:follow-change", {
+            detail: { author, following: nextFollowing },
+          })
+        );
+      }
       setStatus(null);
     } catch (err: any) {
       setStatus(err?.message || "Failed to update follow.");
@@ -170,7 +199,7 @@ export const PostActions = ({
       const tipId = Date.now();
       const [tipPda] = deriveTipPda(wallet.publicKey, tipId);
 
-      await program.methods
+      const tx = await program.methods
         .tip(new BN(tipId), new BN(lamports))
         .accounts({
           from: wallet.publicKey,
@@ -180,7 +209,7 @@ export const PostActions = ({
         })
         .rpc();
 
-      await triggerSync();
+      await triggerSync(tx);
       setStatus("Tip sent.");
     } catch (err: any) {
       setStatus(err?.message || "Failed to send tip.");
@@ -204,8 +233,9 @@ export const PostActions = ({
         postId
       );
 
+      let tx: string;
       if (liked) {
-        await program.methods
+        tx = await program.methods
           .unlikePost()
           .accounts({
             liker: wallet.publicKey,
@@ -214,7 +244,7 @@ export const PostActions = ({
           })
           .rpc();
       } else {
-        await program.methods
+        tx = await program.methods
           .likePost(new BN(postId))
           .accounts({
             liker: wallet.publicKey,
@@ -225,7 +255,7 @@ export const PostActions = ({
           .rpc();
       }
 
-      await triggerSync();
+      await triggerSync(tx);
       setLiked(!liked);
       setLocalLikeCount((prev) => Math.max(0, prev + (liked ? -1 : 1)));
       setStatus(null);
@@ -287,7 +317,7 @@ export const PostActions = ({
       const [commentPda] = deriveCommentPda(wallet.publicKey, postId, commentId);
       const contentCid = await pinCommentContent(commentText);
 
-      await program.methods
+      const tx = await program.methods
         .createComment(new BN(postId), new BN(commentId), contentCid)
         .accounts({
           author: wallet.publicKey,
@@ -297,7 +327,7 @@ export const PostActions = ({
         })
         .rpc();
 
-      await triggerSync();
+      await triggerSync(tx);
       setCommentText("");
       setLocalCommentCount((prev) => prev + 1);
       await loadComments();

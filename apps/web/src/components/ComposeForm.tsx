@@ -124,7 +124,7 @@ export const ComposeForm = () => {
       await fetch("/api/index/replay", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ limit: replayLimit }),
+        body: JSON.stringify({ signature: tx }),
       }).catch(() => null);
 
       setStatus(`Submitted: ${tx}. Indexer sync triggered.`);

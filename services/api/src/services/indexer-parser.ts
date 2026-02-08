@@ -15,6 +15,7 @@ const idlPath = path.resolve(
   __dirname,
   "../../../../contracts/solana/target/idl/solana.json"
 );
+const isDebug = () => process.env.INDEXER_DEBUG === "true";
 
 const loadIdl = (): Idl | null => {
   if (!fs.existsSync(idlPath)) {
@@ -27,10 +28,10 @@ const loadIdl = (): Idl | null => {
 export type ParsedEvent =
   | { type: "profile"; data: { authority: string; username: string; displayName: string; bioCid: string; avatarCid: string } }
   | { type: "follow"; data: { follower: string; following: string } }
+  | { type: "unfollow"; data: { follower: string; following: string } }
   | { type: "post"; data: { author: string; postId: number; contentCid: string; visibility: number } }
   | { type: "tip"; data: { from: string; to: string; tipId: number; amountLamports: number } }
   | { type: "like"; data: { liker: string; postAuthor: string; postId: number } }
-  | { type: "unlike"; data: { liker: string; postAuthor: string; postId: number } }
   | { type: "comment"; data: { author: string; postAuthor: string; postId: number; commentId: number; contentCid: string } }
   | { type: "topic"; data: { topic: string; author: string; postId: number } };
 
@@ -60,9 +61,7 @@ export const parseEventsFromLogs = (
   const parser = new EventParser(programId, program.coder);
 
   const parsed: ParsedEvent[] = [];
-  parser.parseLogs(logs, (event) => {
-    const name = event.name;
-    const data = event.data as Record<string, any>;
+  const handleEvent = (name: string, data: Record<string, any>) => {
     if (name === "ProfileCreated" || name === "ProfileUpdated") {
       parsed.push({
         type: "profile",
@@ -76,8 +75,18 @@ export const parseEventsFromLogs = (
       });
     }
     if (name === "Followed") {
+      const follower = data.follower.toString();
+      const following = data.following.toString();
+      if (follower !== following) {
+        parsed.push({
+          type: "follow",
+          data: { follower, following },
+        });
+      }
+    }
+    if (name === "Unfollowed") {
       parsed.push({
-        type: "follow",
+        type: "unfollow",
         data: {
           follower: data.follower.toString(),
           following: data.following.toString(),
@@ -148,7 +157,50 @@ export const parseEventsFromLogs = (
         },
       });
     }
+  };
+
+  parser.parseLogs(logs, (event) => {
+    const name = event.name;
+    const data = event.data as Record<string, any>;
+    handleEvent(name, data);
   });
+
+  if (isDebug()) {
+    // eslint-disable-next-line no-console
+    console.log("Indexer: parsed events", parsed.length, parsed);
+  }
+
+  if (parsed.length === 0) {
+    const eventCoder = new BorshCoder(idlWithAddress);
+    logs.forEach((line) => {
+      const match = line.match(/Program data: (.*)/);
+      if (!match) return;
+      try {
+        const raw = match[1].trim();
+        if (isDebug()) {
+          // eslint-disable-next-line no-console
+          console.log("Indexer: program data raw", raw.slice(0, 32), raw.length);
+        }
+        const decoded = eventCoder.events.decode(Buffer.from(raw, "base64"));
+        if (isDebug()) {
+          // eslint-disable-next-line no-console
+          console.log(
+            "Indexer: program data decoded",
+            decoded ? decoded.name : null,
+            decoded ? decoded.data : null
+          );
+        }
+        if (decoded) {
+          handleEvent(decoded.name, decoded.data as Record<string, any>);
+        }
+      } catch (err) {
+        if (isDebug()) {
+          // eslint-disable-next-line no-console
+          console.log("Indexer: program data decode error", err);
+        }
+      }
+    });
+  }
 
   return parsed;
 };
@@ -228,9 +280,22 @@ export const parseInstructionsFromTransaction = (
     if (name === "follow") {
       const followerKey = allKeys[ix.accounts?.[0] ?? 0];
       const followingKey = allKeys[ix.accounts?.[1] ?? 0];
-      if (followerKey && followingKey) {
+      if (followerKey && followingKey && !followerKey.equals(followingKey)) {
         parsed.push({
           type: "follow",
+          data: {
+            follower: followerKey.toString(),
+            following: followingKey.toString(),
+          },
+        });
+      }
+    }
+    if (name === "unfollow") {
+      const followerKey = allKeys[ix.accounts?.[0] ?? 0];
+      const followingKey = allKeys[ix.accounts?.[1] ?? 0];
+      if (followerKey && followingKey && !followerKey.equals(followingKey)) {
+        parsed.push({
+          type: "unfollow",
           data: {
             follower: followerKey.toString(),
             following: followingKey.toString(),
