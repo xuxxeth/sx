@@ -8,7 +8,7 @@ import { getProgram, derivePostPda, deriveTopicPda } from "../lib/anchor";
 import { StatusToast } from "./StatusToast";
 import { ErrorHint } from "./ErrorHint";
 import { CONSTRAINTS } from "../lib/constraints";
-import { pinJsonContent } from "../lib/ipfs";
+import { pinPostContent, pinFileContent } from "../lib/ipfs";
 
 const replayLimit = Number(
   process.env.NEXT_PUBLIC_INDEXER_REPLAY_LIMIT || 10
@@ -28,6 +28,9 @@ export const ComposeForm = () => {
   const [signature, setSignature] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const endpoint = useMemo(
     () =>
@@ -38,6 +41,16 @@ export const ComposeForm = () => {
 
   const handleContentChange = (value: string) => {
     setContentText(value);
+  };
+
+  const handleImageSelect = (file: File | null) => {
+    if (!file) {
+      setImagePreview(null);
+      setImageFile(null);
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const submit = async () => {
@@ -53,7 +66,14 @@ export const ComposeForm = () => {
       setStatus("Content is required.");
       return;
     }
-    const cid = await pinJsonContent(contentText, "post");
+    let imageCid: string | null = null;
+    if (imageFile) {
+      setUploading(true);
+      setStatus("Uploading image...");
+      imageCid = await pinFileContent(imageFile, imageFile.name);
+    }
+    setStatus("Uploading post content...");
+    const cid = await pinPostContent(contentText, imageCid);
     if (cid.length > CONSTRAINTS.cidMax) {
       setStatus(`CID too long. Max ${CONSTRAINTS.cidMax} chars.`);
       return;
@@ -102,6 +122,12 @@ export const ComposeForm = () => {
       }).catch(() => null);
 
       setStatus(`Submitted: ${tx}. Indexer sync triggered.`);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("sx:feed-refresh"));
+      }
+      setContentText("");
+      setImagePreview(null);
+      setImageFile(null);
       router.refresh();
     } catch (err: any) {
       const message = err?.message || "Failed to submit transaction.";
@@ -109,28 +135,94 @@ export const ComposeForm = () => {
       setStatus(message);
     } finally {
       setPending(false);
+      setUploading(false);
     }
   };
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="rounded-2xl border border-zinc-200 bg-white p-3">
         <label className="text-xs uppercase tracking-[0.2em] text-zinc-400">
           Content
         </label>
+        {imagePreview ? (
+          <div className="mt-3 overflow-hidden rounded-2xl border border-zinc-200">
+            <img
+              src={imagePreview}
+              alt="Upload preview"
+              className="max-h-[100px] w-full object-contain"
+            />
+            <div className="flex items-center justify-between border-t border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-500">
+              <span>Image attached</span>
+              <button
+                type="button"
+                onClick={() => handleImageSelect(null)}
+                className="rounded-full px-2 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-100"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : null}
         <textarea
-          className="mt-2 h-28 w-full rounded-2xl border border-zinc-200 bg-white p-3 text-sm text-zinc-700"
+          className="mt-3 h-28 w-full resize-none bg-transparent p-1 text-sm text-zinc-700 outline-none"
           placeholder="What's happening? Share your update..."
           value={contentText}
           onChange={(event) => handleContentChange(event.target.value)}
         />
-    </div>
+        <div className="mt-3 flex items-center justify-between border-t border-zinc-200 pt-3 text-zinc-500">
+          <div className="flex items-center gap-3">
+            <label
+              htmlFor="post-image"
+              className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-zinc-200 text-zinc-600 hover:bg-zinc-100"
+              title="Add image"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <circle cx="8.5" cy="9" r="1.5" />
+                <path d="M21 16l-5-5-4 4-2-2-5 5" />
+              </svg>
+            </label>
+            <button
+              type="button"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-400"
+              title="GIF (soon)"
+            >
+              GIF
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 text-zinc-400"
+              title="Poll (soon)"
+            >
+              ···
+            </button>
+          </div>
+          <input
+            id="post-image"
+            type="file"
+            accept="image/*"
+            onChange={(event) =>
+              handleImageSelect(event.target.files?.[0] || null)
+            }
+            className="hidden"
+          />
+        </div>
+      </div>
       <button
         onClick={submit}
-        disabled={pending}
+        disabled={pending || uploading}
         className="w-full rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white"
       >
-        {pending ? "Submitting..." : "Post"}
+        {pending ? "Submitting..." : uploading ? "Uploading..." : "Post"}
       </button>
       <ErrorHint error={error} />
       <StatusToast status={status} signature={signature} />

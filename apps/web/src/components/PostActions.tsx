@@ -10,7 +10,7 @@ import {
   deriveLikePda,
   deriveCommentPda,
 } from "../lib/anchor";
-import { pinJsonContent, resolveIpfsContent } from "../lib/ipfs";
+import { pinCommentContent, resolveIpfsContent } from "../lib/ipfs";
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
@@ -279,7 +279,7 @@ export const PostActions = ({
       const program = await getProgram(wallet as any, endpoint);
       const commentId = Date.now();
       const [commentPda] = deriveCommentPda(wallet.publicKey, postId, commentId);
-      const contentCid = await pinJsonContent(commentText, "comment");
+      const contentCid = await pinCommentContent(commentText);
 
       await program.methods
         .createComment(new BN(postId), new BN(commentId), contentCid)
@@ -309,14 +309,14 @@ export const PostActions = ({
         <button
           onClick={toggleFollow}
           disabled={pending || checking}
-          className="rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700"
+          className="cursor-pointer rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
         >
           {checking ? "Checking..." : following ? "Unfollow" : "Follow"}
         </button>
         <button
           onClick={toggleLike}
           disabled={pending || checking}
-          className="rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700"
+          className="cursor-pointer rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
         >
           {liked ? "Unlike" : "Like"} · {localLikeCount}
         </button>
@@ -327,7 +327,7 @@ export const PostActions = ({
             if (next) loadComments();
           }}
           disabled={pending}
-          className="rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700"
+          className="cursor-pointer rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
         >
           Comments · {localCommentCount}
         </button>
@@ -343,7 +343,7 @@ export const PostActions = ({
           <button
             onClick={sendTip}
             disabled={pending}
-            className="rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700"
+            className="cursor-pointer rounded-full border border-zinc-300 px-3 py-1 text-xs font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-100 hover:text-zinc-900"
           >
             Tip SOL
           </button>
@@ -362,7 +362,7 @@ export const PostActions = ({
             <button
               onClick={submitComment}
               disabled={pending}
-              className="rounded-full bg-zinc-900 px-4 py-2 text-xs font-semibold text-white"
+              className="cursor-pointer rounded-full bg-zinc-900 px-4 py-2 text-xs font-semibold text-white"
             >
               Reply
             </button>

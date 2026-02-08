@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { PostActions } from "./PostActions";
-import { resolveIpfsContent } from "../lib/ipfs";
+import { resolveIpfsPost } from "../lib/ipfs";
 
 type PostCardProps = {
   author: string;
@@ -25,15 +25,18 @@ export const PostCard = ({
   footer,
 }: PostCardProps) => {
   const [content, setContent] = useState<string | null>(null);
+  const [imageCid, setImageCid] = useState<string | null>(null);
   const [contentError, setContentError] = useState(false);
 
   useEffect(() => {
     let active = true;
     setContent(null);
     setContentError(false);
-    resolveIpfsContent(contentCid)
-      .then((text) => {
-        if (active) setContent(text);
+    resolveIpfsPost(contentCid)
+      .then((resolved) => {
+        if (!active) return;
+        setContent(resolved.content);
+        setImageCid(resolved.imageCid || null);
       })
       .catch(() => {
         if (active) setContentError(true);
@@ -63,6 +66,16 @@ export const PostCard = ({
         ) : (
           <p className="mt-2 text-xs text-zinc-400">Loading...</p>
         )}
+        {imageCid ? (
+          <img
+            src={`${
+              process.env.NEXT_PUBLIC_IPFS_GATEWAY ||
+              "https://gateway.pinata.cloud/ipfs"
+            }/${imageCid}`}
+            alt="Post image"
+            className="mx-auto mt-3 max-h-[100px] w-auto rounded-2xl border border-zinc-200 object-contain"
+          />
+        ) : null}
       </div>
       <PostActions
         author={author}

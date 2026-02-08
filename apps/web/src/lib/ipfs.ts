@@ -4,17 +4,19 @@ const apiBase =
 const gateway =
   process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs";
 
-const contentCache = new Map<string, string>();
+type ResolvedPost = { content: string; imageCid?: string | null };
 
-export const pinJsonContent = async (
-  content: string,
-  type: string,
+const contentCache = new Map<string, string>();
+const postCache = new Map<string, ResolvedPost>();
+
+const pinJsonPayload = async (
+  payload: Record<string, any>,
   name?: string
 ) => {
   const res = await fetch(`${apiBase}/ipfs/pin-json`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ content, type, name }),
+    body: JSON.stringify({ content: payload, name }),
   });
 
   const data = await res.json();
@@ -24,9 +26,39 @@ export const pinJsonContent = async (
   return data.data?.IpfsHash as string;
 };
 
-export const resolveIpfsContent = async (cid: string) => {
-  if (contentCache.has(cid)) {
-    return contentCache.get(cid) as string;
+export const pinPostContent = async (
+  content: string,
+  imageCid?: string | null
+) =>
+  pinJsonPayload(
+    { type: "post", content, imageCid: imageCid || null },
+    "post"
+  );
+
+export const pinCommentContent = async (content: string) =>
+  pinJsonPayload({ type: "comment", content }, "comment");
+
+export const pinFileContent = async (file: File, name?: string) => {
+  const form = new FormData();
+  form.append("file", file);
+  if (name) {
+    form.append("name", name);
+  }
+
+  const res = await fetch(`${apiBase}/ipfs/pin-file`, {
+    method: "POST",
+    body: form,
+  });
+  const data = await res.json();
+  if (!res.ok || !data?.ok) {
+    throw new Error(data?.error || "Failed to pin file.");
+  }
+  return data.data?.IpfsHash as string;
+};
+
+export const resolveIpfsPost = async (cid: string) => {
+  if (postCache.has(cid)) {
+    return postCache.get(cid) as ResolvedPost;
   }
 
   const res = await fetch(`${gateway}/${cid}`, { cache: "no-store" });
@@ -35,18 +67,29 @@ export const resolveIpfsContent = async (cid: string) => {
   }
 
   const text = await res.text();
-  let content = text;
+  let resolved: ResolvedPost = { content: text, imageCid: null };
   try {
     const json = JSON.parse(text);
     if (json && typeof json.content === "string") {
-      content = json.content;
-    } else {
-      content = text;
+      resolved = {
+        content: json.content,
+        imageCid: json.imageCid || null,
+      };
     }
   } catch {
-    // keep as text
+    // keep raw text
   }
 
-  contentCache.set(cid, content);
-  return content;
+  postCache.set(cid, resolved);
+  return resolved;
+};
+
+export const resolveIpfsContent = async (cid: string) => {
+  if (contentCache.has(cid)) {
+    return contentCache.get(cid) as string;
+  }
+
+  const resolved = await resolveIpfsPost(cid);
+  contentCache.set(cid, resolved.content);
+  return resolved.content;
 };

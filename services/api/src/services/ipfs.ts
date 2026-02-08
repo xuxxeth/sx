@@ -40,3 +40,34 @@ export const pinJsonToIpfs = async (
   const data = (await res.json()) as PinataPinResponse;
   return data;
 };
+
+export const pinFileToIpfs = async (
+  buffer: Buffer,
+  filename: string,
+  contentType: string,
+  name?: string
+) => {
+  const jwt = getPinataJwt();
+  const form = new FormData();
+  const blob = new Blob([buffer], { type: contentType });
+  form.append("file", blob, filename);
+  if (name) {
+    form.append("pinataMetadata", JSON.stringify({ name }));
+  }
+
+  const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${jwt}`,
+    },
+    body: form,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Pinata error: ${res.status} ${text}`);
+  }
+
+  const data = (await res.json()) as PinataPinResponse;
+  return data;
+};

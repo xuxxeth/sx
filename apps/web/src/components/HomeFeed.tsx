@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PostCard } from "./PostCard";
 import { EmptyState } from "./EmptyState";
@@ -40,34 +40,42 @@ export const HomeFeed = () => {
     return `${apiBase}/feed/following?authority=${wallet.publicKey.toBase58()}&limit=20&offset=0`;
   }, [tab, wallet.publicKey]);
 
-  useEffect(() => {
-    const load = async () => {
-      if (!endpoint) {
+  const load = useCallback(async () => {
+    if (!endpoint) {
+      setPosts([]);
+      setError("Connect wallet to view following feed.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(endpoint, { cache: "no-store" });
+      const data = await res.json();
+      if (!data?.ok) {
+        setError(data?.error || "Failed to load feed.");
         setPosts([]);
-        setError("Connect wallet to view following feed.");
-        return;
+      } else {
+        setPosts(data.data || []);
       }
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(endpoint, { cache: "no-store" });
-        const data = await res.json();
-        if (!data?.ok) {
-          setError(data?.error || "Failed to load feed.");
-          setPosts([]);
-        } else {
-          setPosts(data.data || []);
-        }
-      } catch (err: any) {
-        setError(err?.message || "Failed to load feed.");
-        setPosts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
+    } catch (err: any) {
+      setError(err?.message || "Failed to load feed.");
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
   }, [endpoint]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    const handler = () => {
+      load();
+    };
+    window.addEventListener("sx:feed-refresh", handler);
+    return () => window.removeEventListener("sx:feed-refresh", handler);
+  }, [load]);
 
   return (
     <div>
