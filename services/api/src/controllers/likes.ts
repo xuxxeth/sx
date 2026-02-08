@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { LikeModel } from "../store/models";
-import { badRequest } from "../services/http";
+import { badRequest, conflict, notFound } from "../services/http";
 import { isValidAddress, isValidPostId } from "../services/validators";
 import { getPagination } from "../services/pagination";
 import { ok, okPaged } from "../services/response";
@@ -53,4 +53,58 @@ export const getLikeCount = async (req: Request, res: Response) => {
   const postKey = `${author}:${postId}`;
   const count = await LikeModel.countDocuments({ postKey });
   return ok(res, { count });
+};
+
+export const createLike = async (req: Request, res: Response) => {
+  const { postAuthor, postId } = req.body || {};
+  const liker = (req as any).auth?.address as string;
+  const postIdNum = Number(postId);
+
+  if (!isValidAddress(liker) || !isValidAddress(postAuthor)) {
+    return badRequest(res, "Invalid address.");
+  }
+  if (!isValidPostId(postIdNum)) {
+    return badRequest(res, "Invalid postId.");
+  }
+
+  const postKey = `${postAuthor}:${postIdNum}`;
+  try {
+    const like = await LikeModel.create({
+      liker,
+      postAuthor,
+      postId: postIdNum,
+      postKey,
+    });
+    return res.status(201).json({ ok: true, data: like });
+  } catch (err: any) {
+    if (err?.code === 11000) {
+      return conflict(res, "Already liked.");
+    }
+    throw err;
+  }
+};
+
+export const removeLike = async (req: Request, res: Response) => {
+  const { postAuthor, postId } = req.body || {};
+  const liker = (req as any).auth?.address as string;
+  const postIdNum = Number(postId);
+
+  if (!isValidAddress(liker) || !isValidAddress(postAuthor)) {
+    return badRequest(res, "Invalid address.");
+  }
+  if (!isValidPostId(postIdNum)) {
+    return badRequest(res, "Invalid postId.");
+  }
+
+  const postKey = `${postAuthor}:${postIdNum}`;
+  const result = await LikeModel.findOneAndDelete({
+    liker,
+    postAuthor,
+    postId: postIdNum,
+    postKey,
+  }).lean();
+  if (!result) {
+    return notFound(res, "Like not found.");
+  }
+  return ok(res, { success: true });
 };

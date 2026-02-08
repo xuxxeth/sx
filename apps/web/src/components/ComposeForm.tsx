@@ -9,6 +9,7 @@ import { StatusToast } from "./StatusToast";
 import { ErrorHint } from "./ErrorHint";
 import { CONSTRAINTS } from "../lib/constraints";
 import { pinPostContent, pinFileContent } from "../lib/ipfs";
+import { ensureAuth } from "../lib/auth";
 
 const replayLimit = Number(
   process.env.NEXT_PUBLIC_INDEXER_REPLAY_LIMIT || 10
@@ -62,10 +63,15 @@ export const ComposeForm = () => {
       setStatus("Connect wallet first.");
       return;
     }
+    if (!wallet.signMessage) {
+      setStatus("Wallet does not support message signing.");
+      return;
+    }
     if (!contentText.trim()) {
       setStatus("Content is required.");
       return;
     }
+    await ensureAuth(wallet.publicKey.toBase58(), wallet.signMessage);
     let imageCid: string | null = null;
     if (imageFile) {
       setUploading(true);

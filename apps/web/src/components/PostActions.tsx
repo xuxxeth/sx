@@ -11,6 +11,7 @@ import {
   deriveCommentPda,
 } from "../lib/anchor";
 import { pinCommentContent, resolveIpfsContent } from "../lib/ipfs";
+import { ensureAuth } from "../lib/auth";
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
@@ -269,6 +270,10 @@ export const PostActions = ({
       setStatus("Connect wallet first.");
       return;
     }
+    if (!wallet.signMessage) {
+      setStatus("Wallet does not support message signing.");
+      return;
+    }
     if (!commentText.trim()) {
       setStatus("Comment cannot be empty.");
       return;
@@ -276,6 +281,7 @@ export const PostActions = ({
     try {
       setPending(true);
       setStatus("Submitting comment...");
+      await ensureAuth(wallet.publicKey.toBase58(), wallet.signMessage);
       const program = await getProgram(wallet as any, endpoint);
       const commentId = Date.now();
       const [commentPda] = deriveCommentPda(wallet.publicKey, postId, commentId);

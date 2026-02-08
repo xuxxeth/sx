@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { TopicModel, PostModel } from "../store/models";
-import { badRequest } from "../services/http";
+import { badRequest, conflict } from "../services/http";
+import { isValidPostId, isValidTopic, isValidAddress } from "../services/validators";
 import { getPagination } from "../services/pagination";
 import { ok, okPaged } from "../services/response";
 
@@ -44,4 +45,36 @@ export const getTopicFeed = async (req: Request, res: Response) => {
     : [];
 
   return ok(res, { posts, topic, total: topicEntries.length });
+};
+
+export const createTopic = async (req: Request, res: Response) => {
+  const { topic, postId } = req.body || {};
+  const author = (req as any).auth?.address as string;
+  const postIdNum = Number(postId);
+
+  if (!isValidAddress(author)) {
+    return badRequest(res, "Invalid author address.");
+  }
+  if (!isValidTopic(topic)) {
+    return badRequest(res, "Invalid topic.");
+  }
+  if (!isValidPostId(postIdNum)) {
+    return badRequest(res, "Invalid postId.");
+  }
+
+  const postKey = `${author}:${postIdNum}`;
+  try {
+    const entry = await TopicModel.create({
+      topic,
+      author,
+      postId: postIdNum,
+      postKey,
+    });
+    return res.status(201).json({ ok: true, data: entry });
+  } catch (err: any) {
+    if (err?.code === 11000) {
+      return conflict(res, "Topic already indexed.");
+    }
+    throw err;
+  }
 };

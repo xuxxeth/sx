@@ -1,3 +1,5 @@
+import { authFetch } from "./auth";
+
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
 
@@ -13,7 +15,7 @@ const pinJsonPayload = async (
   payload: Record<string, any>,
   name?: string
 ) => {
-  const res = await fetch(`${apiBase}/ipfs/pin-json`, {
+  const res = await authFetch(`${apiBase}/ipfs/pin-json`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ content: payload, name }),
@@ -45,7 +47,7 @@ export const pinFileContent = async (file: File, name?: string) => {
     form.append("name", name);
   }
 
-  const res = await fetch(`${apiBase}/ipfs/pin-file`, {
+  const res = await authFetch(`${apiBase}/ipfs/pin-file`, {
     method: "POST",
     body: form,
   });

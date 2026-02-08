@@ -2,6 +2,7 @@ const MAX_USERNAME_LEN = 32;
 const MAX_DISPLAY_NAME_LEN = 48;
 const MAX_CID_LEN = 128;
 const MAX_EVENT_ID_LEN = 128;
+const MAX_TOPIC_LEN = 32;
 
 export const isNonEmpty = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
@@ -29,3 +30,6 @@ export const isValidLamports = (value: unknown) =>
 
 export const isValidAddress = (value: unknown) =>
   isNonEmpty(value) && value.length >= 32 && value.length <= 64;
+
+export const isValidTopic = (value: unknown) =>
+  isNonEmpty(value) && value.length <= MAX_TOPIC_LEN;
