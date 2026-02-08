@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Anchor / Solana
+/target/
+**/target/
+**/.anchor/
+**/.solana/
+
+# Misc
+*.log

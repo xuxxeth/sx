@@ -1,0 +1,1420 @@
+{
+  "address": "8TysGbj7Xgj9zzctWCuSV8wPot3Jh6Q6uzrVhRj4nxwp",
+  "metadata": {
+    "name": "solana",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "create_comment",
+      "discriminator": [
+        236,
+        232,
+        11,
+        180,
+        70,
+        206,
+        73,
+        145
+      ],
+      "accounts": [
+        {
+          "name": "author",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "post_author"
+        },
+        {
+          "name": "comment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  109,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "author"
+              },
+              {
+                "kind": "arg",
+                "path": "post_id"
+              },
+              {
+                "kind": "arg",
+                "path": "comment_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "post_id",
+          "type": "u64"
+        },
+        {
+          "name": "comment_id",
+          "type": "u64"
+        },
+        {
+          "name": "content_cid",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "create_post_index",
+      "discriminator": [
+        93,
+        232,
+        38,
+        255,
+        235,
+        92,
+        231,
+        29
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "post",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              },
+              {
+                "kind": "arg",
+                "path": "post_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "post_id",
+          "type": "u64"
+        },
+        {
+          "name": "content_cid",
+          "type": "string"
+        },
+        {
+          "name": "visibility",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "create_profile",
+      "discriminator": [
+        225,
+        205,
+        234,
+        143,
+        17,
+        186,
+        50,
+        220
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "username_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  110,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "username"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "display_name",
+          "type": "string"
+        },
+        {
+          "name": "bio_cid",
+          "type": "string"
+        },
+        {
+          "name": "avatar_cid",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "follow",
+      "discriminator": [
+        161,
+        61,
+        150,
+        122,
+        164,
+        153,
+        0,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "follower",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "following"
+        },
+        {
+          "name": "follow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  111,
+                  108,
+                  108,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "follower"
+              },
+              {
+                "kind": "account",
+                "path": "following"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "index_topic",
+      "discriminator": [
+        175,
+        29,
+        88,
+        221,
+        211,
+        45,
+        58,
+        0
+      ],
+      "accounts": [
+        {
+          "name": "author",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "topic_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  112,
+                  105,
+                  99
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "topic"
+              },
+              {
+                "kind": "account",
+                "path": "author"
+              },
+              {
+                "kind": "arg",
+                "path": "post_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "post_id",
+          "type": "u64"
+        },
+        {
+          "name": "topic",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "like_post",
+      "discriminator": [
+        45,
+        242,
+        154,
+        71,
+        63,
+        133,
+        54,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "liker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "post_author"
+        },
+        {
+          "name": "like",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "liker"
+              },
+              {
+                "kind": "account",
+                "path": "post_author"
+              },
+              {
+                "kind": "arg",
+                "path": "post_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "post_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "tip",
+      "discriminator": [
+        77,
+        164,
+        35,
+        21,
+        36,
+        121,
+        213,
+        51
+      ],
+      "accounts": [
+        {
+          "name": "from",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "to",
+          "writable": true
+        },
+        {
+          "name": "tip_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "from"
+              },
+              {
+                "kind": "arg",
+                "path": "tip_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "tip_id",
+          "type": "u64"
+        },
+        {
+          "name": "amount_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "unfollow",
+      "discriminator": [
+        122,
+        47,
+        24,
+        161,
+        12,
+        85,
+        224,
+        68
+      ],
+      "accounts": [
+        {
+          "name": "follower",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "following"
+        },
+        {
+          "name": "follow",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  111,
+                  108,
+                  108,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "follower"
+              },
+              {
+                "kind": "account",
+                "path": "following"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "unlike_post",
+      "discriminator": [
+        236,
+        63,
+        6,
+        34,
+        128,
+        3,
+        114,
+        174
+      ],
+      "accounts": [
+        {
+          "name": "liker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "post_author"
+        },
+        {
+          "name": "like",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  107,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "liker"
+              },
+              {
+                "kind": "account",
+                "path": "post_author"
+              },
+              {
+                "kind": "account",
+                "path": "like.post_id",
+                "account": "LikeRecord"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_profile",
+      "discriminator": [
+        98,
+        67,
+        99,
+        206,
+        86,
+        115,
+        175,
+        1
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "profile"
+          ]
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "display_name",
+          "type": "string"
+        },
+        {
+          "name": "bio_cid",
+          "type": "string"
+        },
+        {
+          "name": "avatar_cid",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "update_username",
+      "discriminator": [
+        233,
+        103,
+        45,
+        8,
+        250,
+        100,
+        216,
+        251
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "profile"
+          ]
+        },
+        {
+          "name": "profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "old_username_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  110,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "profile.username",
+                "account": "UserProfile"
+              }
+            ]
+          }
+        },
+        {
+          "name": "new_username_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  110,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "new_username"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "new_username",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "CommentRecord",
+      "discriminator": [
+        152,
+        52,
+        102,
+        146,
+        208,
+        29,
+        42,
+        101
+      ]
+    },
+    {
+      "name": "FollowEdge",
+      "discriminator": [
+        108,
+        95,
+        23,
+        89,
+        190,
+        92,
+        157,
+        126
+      ]
+    },
+    {
+      "name": "LikeRecord",
+      "discriminator": [
+        179,
+        237,
+        53,
+        5,
+        91,
+        236,
+        161,
+        50
+      ]
+    },
+    {
+      "name": "PostIndex",
+      "discriminator": [
+        45,
+        108,
+        201,
+        12,
+        36,
+        6,
+        32,
+        117
+      ]
+    },
+    {
+      "name": "TipRecord",
+      "discriminator": [
+        43,
+        243,
+        62,
+        130,
+        183,
+        4,
+        81,
+        185
+      ]
+    },
+    {
+      "name": "TopicIndex",
+      "discriminator": [
+        217,
+        239,
+        180,
+        229,
+        168,
+        236,
+        121,
+        251
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
+      ]
+    },
+    {
+      "name": "UsernameRecord",
+      "discriminator": [
+        42,
+        172,
+        136,
+        41,
+        240,
+        123,
+        100,
+        204
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "CommentCreated",
+      "discriminator": [
+        27,
+        186,
+        105,
+        74,
+        47,
+        93,
+        2,
+        106
+      ]
+    },
+    {
+      "name": "Followed",
+      "discriminator": [
+        236,
+        182,
+        255,
+        24,
+        25,
+        185,
+        209,
+        23
+      ]
+    },
+    {
+      "name": "PostIndexed",
+      "discriminator": [
+        86,
+        242,
+        133,
+        103,
+        105,
+        93,
+        233,
+        247
+      ]
+    },
+    {
+      "name": "PostLiked",
+      "discriminator": [
+        73,
+        27,
+        139,
+        100,
+        14,
+        89,
+        19,
+        81
+      ]
+    },
+    {
+      "name": "PostUnliked",
+      "discriminator": [
+        134,
+        105,
+        196,
+        139,
+        213,
+        120,
+        103,
+        204
+      ]
+    },
+    {
+      "name": "ProfileCreated",
+      "discriminator": [
+        134,
+        233,
+        199,
+        153,
+        77,
+        206,
+        128,
+        94
+      ]
+    },
+    {
+      "name": "ProfileUpdated",
+      "discriminator": [
+        186,
+        248,
+        62,
+        98,
+        112,
+        98,
+        161,
+        252
+      ]
+    },
+    {
+      "name": "Tipped",
+      "discriminator": [
+        5,
+        180,
+        227,
+        203,
+        87,
+        116,
+        150,
+        135
+      ]
+    },
+    {
+      "name": "TopicIndexed",
+      "discriminator": [
+        125,
+        27,
+        70,
+        45,
+        74,
+        21,
+        45,
+        9
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidUsername",
+      "msg": "Username length is invalid."
+    },
+    {
+      "code": 6001,
+      "name": "InvalidDisplayName",
+      "msg": "Display name length is invalid."
+    },
+    {
+      "code": 6002,
+      "name": "InvalidCid",
+      "msg": "CID length is invalid."
+    },
+    {
+      "code": 6003,
+      "name": "InvalidTopic",
+      "msg": "Topic length is invalid."
+    }
+  ],
+  "types": [
+    {
+      "name": "CommentCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          },
+          {
+            "name": "comment_id",
+            "type": "u64"
+          },
+          {
+            "name": "content_cid",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CommentRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          },
+          {
+            "name": "comment_id",
+            "type": "u64"
+          },
+          {
+            "name": "content_cid",
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FollowEdge",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "follower",
+            "type": "pubkey"
+          },
+          {
+            "name": "following",
+            "type": "pubkey"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Followed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "follower",
+            "type": "pubkey"
+          },
+          {
+            "name": "following",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LikeRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "liker",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PostIndex",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          },
+          {
+            "name": "content_cid",
+            "type": "string"
+          },
+          {
+            "name": "visibility",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PostIndexed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          },
+          {
+            "name": "content_cid",
+            "type": "string"
+          },
+          {
+            "name": "visibility",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PostLiked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "liker",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PostUnliked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "liker",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProfileCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "display_name",
+            "type": "string"
+          },
+          {
+            "name": "bio_cid",
+            "type": "string"
+          },
+          {
+            "name": "avatar_cid",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProfileUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "display_name",
+            "type": "string"
+          },
+          {
+            "name": "bio_cid",
+            "type": "string"
+          },
+          {
+            "name": "avatar_cid",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TipRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "from",
+            "type": "pubkey"
+          },
+          {
+            "name": "to",
+            "type": "pubkey"
+          },
+          {
+            "name": "tip_id",
+            "type": "u64"
+          },
+          {
+            "name": "amount_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tipped",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "from",
+            "type": "pubkey"
+          },
+          {
+            "name": "to",
+            "type": "pubkey"
+          },
+          {
+            "name": "tip_id",
+            "type": "u64"
+          },
+          {
+            "name": "amount_lamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TopicIndex",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "topic",
+            "type": "string"
+          },
+          {
+            "name": "author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TopicIndexed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "topic",
+            "type": "string"
+          },
+          {
+            "name": "author",
+            "type": "pubkey"
+          },
+          {
+            "name": "post_id",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "display_name",
+            "type": "string"
+          },
+          {
+            "name": "bio_cid",
+            "type": "string"
+          },
+          {
+            "name": "avatar_cid",
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UsernameRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}
