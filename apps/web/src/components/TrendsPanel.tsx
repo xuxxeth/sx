@@ -7,8 +7,18 @@ const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
 
 type Trend =
-  | { type: "topic"; topic: string; count: number }
-  | { type: "post"; author: string; postId: number; contentCid: string };
+  | {
+      type: "topic";
+      topic: string;
+      count: number;
+    }
+  | {
+      type: "post";
+      eventId?: string;
+      author: string;
+      postId: number;
+      contentCid: string;
+    };
 
 export const TrendsPanel = () => {
   const [trends, setTrends] = useState<Trend[]>([]);
@@ -17,7 +27,7 @@ export const TrendsPanel = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`${apiBase}/topics?limit=5&offset=0`, {
+        const res = await fetch(`${apiBase}/topics?mode=feed&limit=3&offset=0`, {
           cache: "no-store",
         });
         const data = await res.json();
@@ -73,23 +83,23 @@ export const TrendsPanel = () => {
           if (trend.type === "post") {
             const key = `${trend.author}:${trend.postId}`;
             return (
-              <div key={key}>
+              <a
+                key={key}
+                href={
+                  trend.eventId
+                    ? `/post/${encodeURIComponent(trend.eventId)}`
+                    : undefined
+                }
+                className="block rounded-2xl border border-zinc-200 px-3 py-2 transition hover:border-zinc-300 hover:bg-zinc-50"
+              >
                 <p className="text-xs text-zinc-400">Latest post</p>
                 <p className="text-sm font-semibold text-zinc-900">
                   {snippets[key] || "Loading..."}
                 </p>
-              </div>
+              </a>
             );
           }
-          return (
-            <div key={trend.topic}>
-              <p className="text-xs text-zinc-400">Trending</p>
-              <p className="text-sm font-semibold text-zinc-900">
-                #{trend.topic}
-              </p>
-              <p className="text-xs text-zinc-400">{trend.count} posts</p>
-            </div>
-          );
+          return null;
         })}
       </div>
     </div>

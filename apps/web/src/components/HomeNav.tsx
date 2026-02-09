@@ -13,10 +13,10 @@ const navItems = [
 
 export const HomeNav = () => {
   return (
-    <aside className="sticky top-6 hidden h-fit w-56 flex-col gap-6 lg:flex">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <aside className="hidden h-full w-56 flex-col lg:flex">
+      <div className="flex h-full flex-col rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="text-2xl font-semibold">SX</div>
-        <nav className="mt-6 flex flex-col gap-3 text-sm font-semibold text-zinc-700">
+        <nav className="mt-6 flex flex-1 flex-col gap-3 text-sm font-semibold text-zinc-700">
           {navItems.map((item) => (
             <Link key={item.label} href={item.href}>
               {item.label}

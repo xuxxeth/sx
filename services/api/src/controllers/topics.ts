@@ -7,6 +7,25 @@ import { ok, okPaged } from "../services/response";
 
 export const listTopics = async (req: Request, res: Response) => {
   const { limit, offset } = getPagination(req);
+  const mode = String(req.query.mode || "");
+
+  if (mode === "feed") {
+    const posts = await PostModel.find({})
+      .sort({ createdAt: -1 })
+      .limit(limit || 3)
+      .lean();
+    return okPaged(
+      res,
+      posts.map((post) => ({
+        type: "post",
+        eventId: post.eventId,
+        author: post.author,
+        postId: post.postId,
+        contentCid: post.contentCid,
+      })),
+      { limit, offset, total: posts.length }
+    );
+  }
 
   const topics = await TopicModel.aggregate([
     { $group: { _id: "$topic", count: { $sum: 1 } } },
@@ -24,6 +43,7 @@ export const listTopics = async (req: Request, res: Response) => {
       res,
       posts.map((post) => ({
         type: "post",
+        eventId: post.eventId,
         author: post.author,
         postId: post.postId,
         contentCid: post.contentCid,

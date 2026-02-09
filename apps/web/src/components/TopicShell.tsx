@@ -57,11 +57,11 @@ export const TopicShell = ({ topic }: { topic: string }) => {
   }, [topic]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-amber-50 via-white to-zinc-100 text-zinc-950">
-      <div className="mx-auto flex w-full max-w-7xl gap-6 px-6 pb-16 pt-8">
+    <div className="h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-amber-50 via-white to-zinc-100 text-zinc-950">
+      <div className="mx-auto flex h-full w-full max-w-7xl gap-6 px-6 pb-8 pt-6">
         <HomeNav />
 
-        <main className="flex-1">
+        <main className="flex-1 overflow-y-auto pb-10">
           <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-[0_30px_80px_-60px_rgba(0,0,0,0.6)]">
             <div className="flex items-center justify-between">
               <div>
@@ -115,10 +115,12 @@ export const TopicShell = ({ topic }: { topic: string }) => {
           </section>
         </main>
 
-        <aside className="hidden w-80 flex-col gap-6 lg:flex">
-          <SearchCard />
-          <TrendsPanel />
-          <ConfigWarnings />
+        <aside className="hidden w-80 flex-col lg:flex">
+          <div className="flex h-full flex-col gap-6">
+            <SearchCard />
+            <TrendsPanel />
+            <ConfigWarnings />
+          </div>
         </aside>
       </div>
     </div>
