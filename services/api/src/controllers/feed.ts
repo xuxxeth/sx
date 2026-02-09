@@ -79,6 +79,21 @@ export const getPublicFeed = async (req: Request, res: Response) => {
   return okPaged(res, withCounts, { limit, offset, total });
 };
 
+export const getPostDetail = async (req: Request, res: Response) => {
+  const { eventId } = req.params;
+  if (!eventId || typeof eventId !== "string") {
+    return badRequest(res, "Invalid post reference.");
+  }
+
+  const post = await PostModel.findOne({ eventId }).lean();
+  if (!post) {
+    return res.status(404).json({ ok: false, error: "Post not found." });
+  }
+
+  const withCounts = await attachCounts([post]);
+  return ok(res, withCounts[0]);
+};
+
 export const getProfileFeed = async (req: Request, res: Response) => {
   const { authority } = req.params;
   if (!isValidAddress(authority)) {

@@ -13,7 +13,6 @@ const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
 
 type PostIndex = {
-  eventId?: string;
   author: string;
   postId: number;
   contentCid: string;
@@ -23,38 +22,45 @@ type PostIndex = {
   commentCount?: number;
 };
 
-export const TopicShell = ({ topic }: { topic: string }) => {
-  const [posts, setPosts] = useState<PostIndex[]>([]);
+export const PostDetailShell = ({
+  eventId,
+}: {
+  eventId: string;
+}) => {
+  const [post, setPost] = useState<PostIndex | null>(null);
   const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
+  console.log("Loading post detail for event:", eventId);
+
   useEffect(() => {
-    if (!topic) {
-      setMessage("Missing topic.");
+    if (!eventId) {
+      setMessage("Missing post reference.");
       return;
     }
     const load = async () => {
       setLoading(true);
       setMessage("");
       try {
-        const res = await fetch(`${apiBase}/topics/${topic}?limit=20&offset=0`, {
+        const res = await fetch(`${apiBase}/feed/post/${eventId}`, {
           cache: "no-store",
         });
         const data = await res.json();
         if (!data?.ok) {
-          setMessage(data?.error || "Failed to load topic.");
-          setPosts([]);
+          setMessage(data?.error || "Failed to load post.");
+          setPost(null);
         } else {
-          setPosts(data.data?.posts || []);
+          setPost(data.data || null);
         }
       } catch (err: any) {
-        setMessage(err?.message || "Failed to load topic.");
+        setMessage(err?.message || "Failed to load post.");
+        setPost(null);
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [topic]);
+  }, [eventId]);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-amber-50 via-white to-zinc-100 text-zinc-950">
@@ -66,9 +72,9 @@ export const TopicShell = ({ topic }: { topic: string }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-zinc-400">
-                  Topic
+                  Post
                 </p>
-                <h1 className="text-2xl font-semibold">#{topic}</h1>
+                <h1 className="text-2xl font-semibold">Detail</h1>
               </div>
             </div>
 
@@ -76,41 +82,29 @@ export const TopicShell = ({ topic }: { topic: string }) => {
               <ErrorBanner message={message || null} />
               {loading ? (
                 <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-6 text-sm text-zinc-500">
-                  Loading topic feed...
+                  Loading post...
                 </div>
               ) : null}
               {!loading && message ? (
                 <EmptyState
-                  title="Topic unavailable"
-                  description="No matching topic found yet."
+                  title="Post unavailable"
+                  description="The post could not be found."
                   showRetry
                 />
               ) : null}
-              {!loading && !message && posts.length === 0 ? (
-                <EmptyState
-                  title="No posts yet"
-                  description="Once posts are indexed, they will appear here."
-                  showRetry
-                />
-              ) : null}
-              <div className="mt-4 grid gap-4">
-                {posts.map((post) => (
+              {!loading && !message && post ? (
+                <div className="mt-4 grid gap-4">
                   <PostCard
-                    key={`${post.author}-${post.postId}`}
                     author={post.author}
                     postId={post.postId}
                     contentCid={post.contentCid}
                     createdAt={new Date(post.createdAt).toLocaleString()}
                     likeCount={post.likeCount}
                     commentCount={post.commentCount}
-                    linkTo={
-                      post.eventId
-                        ? `/post/${encodeURIComponent(post.eventId)}`
-                        : undefined
-                    }
+                    defaultCommentOpen
                   />
-                ))}
-              </div>
+                </div>
+              ) : null}
             </div>
           </section>
         </main>

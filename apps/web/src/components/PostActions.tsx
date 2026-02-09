@@ -28,6 +28,7 @@ type PostActionsProps = {
   postId: number;
   likeCount?: number;
   commentCount?: number;
+  defaultCommentOpen?: boolean;
 };
 
 export const PostActions = ({
@@ -35,6 +36,7 @@ export const PostActions = ({
   postId,
   likeCount = 0,
   commentCount = 0,
+  defaultCommentOpen = false,
 }: PostActionsProps) => {
   const wallet = useWallet();
   const [following, setFollowing] = useState(false);
@@ -44,7 +46,7 @@ export const PostActions = ({
   const [status, setStatus] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [localLikeCount, setLocalLikeCount] = useState(likeCount);
-  const [commentOpen, setCommentOpen] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(defaultCommentOpen);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
   const [commentBodies, setCommentBodies] = useState<Record<string, string>>({});
@@ -115,6 +117,13 @@ export const PostActions = ({
   useEffect(() => {
     setLocalCommentCount(commentCount);
   }, [commentCount]);
+
+  useEffect(() => {
+    if (defaultCommentOpen) {
+      setCommentOpen(true);
+      loadComments();
+    }
+  }, [defaultCommentOpen]);
 
   const triggerSync = async (txSignature?: string) => {
     await fetch("/api/index/replay", {

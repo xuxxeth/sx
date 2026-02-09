@@ -4,6 +4,7 @@ import { PostCard } from "./PostCard";
 import { EmptyState } from "./EmptyState";
 
 export type PostIndex = {
+  eventId?: string;
   author: string;
   postId: number;
   contentCid: string;
@@ -54,8 +55,14 @@ export const AuthorityFeed = async ({
         <PostCard
           key={`${post.author}-${post.postId}`}
           author={post.author}
+          postId={post.postId}
           contentCid={post.contentCid}
           createdAt={new Date(post.createdAt).toLocaleString()}
+          linkTo={
+            post.eventId
+              ? `/post/${encodeURIComponent(post.eventId)}`
+              : undefined
+          }
         />
       ))}
       {showLoadMore ? (

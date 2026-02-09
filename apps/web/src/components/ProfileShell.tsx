@@ -39,6 +39,7 @@ type ProfileSummary = {
 };
 
 type PostIndex = {
+  eventId?: string;
   author: string;
   postId: number;
   contentCid: string;
@@ -255,6 +256,11 @@ export const ProfileShell = () => {
                     createdAt={new Date(post.createdAt).toLocaleString()}
                     likeCount={post.likeCount}
                     commentCount={post.commentCount}
+                    linkTo={
+                      post.eventId
+                        ? `/post/${encodeURIComponent(post.eventId)}`
+                        : undefined
+                    }
                   />
                 ))}
               </div>

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PostActions } from "./PostActions";
 import { resolveIpfsPost } from "../lib/ipfs";
 
@@ -13,6 +14,8 @@ type PostCardProps = {
   likeCount?: number;
   commentCount?: number;
   footer?: ReactNode;
+  linkTo?: string;
+  defaultCommentOpen?: boolean;
 };
 
 export const PostCard = ({
@@ -23,10 +26,15 @@ export const PostCard = ({
   likeCount,
   commentCount,
   footer,
+  linkTo,
+  defaultCommentOpen = false,
 }: PostCardProps) => {
+  const router = useRouter();
   const [content, setContent] = useState<string | null>(null);
   const [imageCid, setImageCid] = useState<string | null>(null);
   const [contentError, setContentError] = useState(false);
+
+  console.log("PostCard mounted with contentCid:", postId, contentCid);
 
   useEffect(() => {
     let active = true;
@@ -46,8 +54,26 @@ export const PostCard = ({
     };
   }, [contentCid]);
 
+  const handleNavigate = (event: React.MouseEvent) => {
+    if (!linkTo) return;
+    const target = event.target as HTMLElement | null;
+    if (
+      target?.closest(
+        "button, a, input, textarea, select, label, [data-no-nav]"
+      )
+    ) {
+      return;
+    }
+    router.push(linkTo);
+  };
+
   return (
-    <article className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+    <article
+      onClick={handleNavigate}
+      className={`rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition ${
+        linkTo ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg" : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">Author</p>
@@ -82,6 +108,7 @@ export const PostCard = ({
         postId={postId}
         likeCount={likeCount}
         commentCount={commentCount}
+        defaultCommentOpen={defaultCommentOpen}
       />
       {footer ? <div className="mt-4">{footer}</div> : null}
     </article>
